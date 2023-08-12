@@ -12,6 +12,7 @@ const filterDropdown = document.querySelectorAll('.dropdown-item');
 const searchContainer = document.getElementById('searchContainer');
 const searchInput = document.getElementById('searchInput');
 const tableBody = document.getElementById('tableBody');
+const searchButton = document.getElementById('search-button')
 
 // Creo una funzione che mi filtri la risposta ricevuta dall'API in base alla scelta dell'utente sul dropdown
 filterDropdown.forEach(item => {
@@ -23,7 +24,12 @@ filterDropdown.forEach(item => {
         //console.log(searchInput.placeholder);
         searchInput.dataset.filter = filterKey;
         searchContainer.classList.remove('d-none');
-        populateTable()
+
+        //Salvo i dati inseriti nel filtro, PROVA LOCAL STORAGE
+        localStorage.setItem('selectedFilter', filterKey);
+
+        //Richiamo la funzione per popolare la tabella
+        //populateTable()
     });
 });
 
@@ -74,5 +80,57 @@ async function populateTable() {
     });
 }
 
-//Aggiungo un listener al campo di ricerca di tipo input
-searchInput.addEventListener('input', populateTable);
+//Applico un listener al campo di ricerca di tipo input
+searchInput.addEventListener('input', function() {
+    const searchTerm = searchInput.value.trim();
+    if (searchTerm === '') {
+        clearTable(); 
+    } else {
+        populateTable();
+    }
+});
+
+//Applico un listener al campo di ricerca di tipo keyup
+searchInput.addEventListener('keyup', function(event) {
+    if (event.key === 'Enter') {
+        populateTable();
+    }
+});
+
+//Applico un listener al pulsante di ricerca di tipo click
+searchButton.addEventListener('click', function(event) {
+    event.preventDefault();
+    populateTable();
+});
+
+//Creo una funzione per svuotare la tabella
+function clearTable() {
+    while (tableBody.firstChild) {
+        tableBody.removeChild(tableBody.firstChild);
+    }
+}
+
+//PROVA LOCAL STORAGE
+
+// Recupera il filtro dal localStorage al caricamento della pagina
+window.addEventListener('load', () => {
+    const storedFilter = localStorage.getItem('selectedFilter');
+
+    if (storedFilter) {
+        const filterItem = Array.from(filterDropdown).find(item => {
+            return item.textContent.trim().toLowerCase() === storedFilter.toLowerCase();
+        });
+
+        if (filterItem) {
+            const selectedFilter = filterItem.textContent.trim();
+            const filterKey = storedFilter;
+
+            searchInput.placeholder = `Search by ${selectedFilter}`;
+            searchInput.dataset.filter = filterKey;
+            searchContainer.classList.remove('d-none');
+
+            //populateTable();
+        }
+    }
+});
+
